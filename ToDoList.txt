@@ -1,5 +1,0 @@
-TO DO LIST:
-
- - Add new HorseHandler with helper methods
- - Change horses to static HorseHandler array / list
- - Allocate horse method
