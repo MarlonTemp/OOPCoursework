@@ -5,9 +5,10 @@ import java.lang.Math;
  * A three-horse race, each horse running in its own lane
  * for a given distance
  * 
- * @author Sir SirMcRaceface XVII Jr., the fabeled cowboy of Warsburymouth
- * @version 1.0
+ * @Author: Marlon Pires
+ * @version 0.3
  */
+
 public class Race
 {
     private int raceLength;
