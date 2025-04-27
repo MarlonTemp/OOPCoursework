@@ -1,6 +1,5 @@
+import java.util.*;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 final class FileHandler {
     /* ********************************** **

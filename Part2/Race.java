@@ -1,5 +1,7 @@
 import java.util.concurrent.TimeUnit;
 import java.lang.Math;
+import java.util.*;
+import java.io.*;
 
 /**
  * A three-horse race, each horse running in its own lane
@@ -26,18 +28,55 @@ public class Race
     {
         // initialise instance variables
         raceLength = distance;
+        /* REDUNDANT DUE TO HORSEHANDLER ARRAYLIST
         lane1Horse = null;
         lane2Horse = null;
         lane3Horse = null;
+        */
     }
+
+    public static void main(String args[]) {
+        boolean raceInitialised = false;
+        final int DEFAULT_TRACK_LENGTH = 10;
+        Race r = new Race(DEFAULT_TRACK_LENGTH);
+        
+        if (args.length == 1) {
+            try {
+                int temp = Integer.parseInt(args[0]);
+                if (temp <= 0) {
+                    throw new IllegalArgumentException("Enter a positive number!");
+                }
+                r = new Race(temp);
+                raceInitialised = true;
+            }
+            catch (NumberFormatException e) {
+                throw new NumberFormatException("Enter a positive number!");
+            }
+                
+            
+        }
+        else if (args.length == 0) {
+            r = new Race(DEFAULT_TRACK_LENGTH);
+            raceInitialised = true;
+        }
+        
+        if (raceInitialised) {
+            r.startRace();
+        }
+        else {
+            System.out.println("0 arguments: default length (" + DEFAULT_TRACK_LENGTH + ") \n 1 argument: int track length");
+        }
+    }
+
     
-    /**
+    /** UNUSED METHOD IN CODE - REPLACED BY SETHORSES
      * Adds a horse to the race in a given lane
      * 
      * @param theHorse the horse to be added to the race
      * @param laneNumber the lane that the horse will be added to
      */
-    public void addHorse(Horse theHorse, int laneNumber)
+    @Deprecated
+    private void addHorse(Horse theHorse, int laneNumber)
     {
         if (laneNumber == 1)
         {
@@ -65,35 +104,54 @@ public class Race
      */
     public void startRace()
     {
-        //declare a local variable to tell us when the race is finished
-        boolean finished = false;
-        
-        //reset all the lanes (all horses not fallen and back to 0). 
-        lane1Horse.goBackToStart();
-        lane2Horse.goBackToStart();
-        lane3Horse.goBackToStart();
-                      
-        while (!finished)
-        {
-            //move each horse
-            moveHorse(lane1Horse);
-            moveHorse(lane2Horse);
-            moveHorse(lane3Horse);
-                        
-            //print the race positions
-            printRace();
+        String userChoice = "";
+        boolean continueLoop = true;
+        while (continueLoop) {
+            //declare a local variable to tell us when the race is finished
+            boolean finished = false;
+            Horse winner;
+            //Menu allowing user to add horses, or begin race
+            menu();
             
-            //if any of the three horses has won the race is finished
-            if ( raceWonBy(lane1Horse) || raceWonBy(lane2Horse) || raceWonBy(lane3Horse) )
+            setHorses();
+            
+            //reset all the lanes (all horses not fallen and back to 0). 
+            HorseManager.horsesBackToStart();
+                          
+            while ((!finished) && (!allFallen()))
             {
-                finished = true;
+                //move each horse
+                for (Horse h : HorseManager.getHorses()) {
+                    moveHorse(h);
+                }
+                            
+                //print the race positions
+                printRace();
+                
+                //if any of the three horses has won the race is finished
+                if (raceWonByHorse())
+                {
+                    finished = true;
+                }
+               
+                //wait for 100 milliseconds
+                try{ 
+                    TimeUnit.MILLISECONDS.sleep(100);
+                }catch(Exception e){}
             }
-           
-            //wait for 100 milliseconds
-            try{ 
-                TimeUnit.MILLISECONDS.sleep(100);
-            }catch(Exception e){}
+            if (raceWonByHorse()) {
+                System.out.println("And the winner is... " + getWinner().getName());
+            }
+            else {
+                System.out.println("No horse won!");
+            }
+            
+            userChoice = Helper.input("Start another race? (y/n)");
+            if (userChoice.equals("n")) {
+                continueLoop = false;
+            }
         }
+        
     }
     
     /**
@@ -131,16 +189,34 @@ public class Race
      * @param theHorse The horse we are testing
      * @return true if the horse has won, false otherwise.
      */
-    private boolean raceWonBy(Horse theHorse)
+    private boolean raceWonByHorse()
     {
-        if (theHorse.getDistanceTravelled() == raceLength)
-        {
-            return true;
+        for (Horse h : HorseManager.getHorses()) {
+            if (h.getDistanceTravelled() >= raceLength)
+            {
+                return true;
+            }
         }
-        else
-        {
-            return false;
+        return false;
+    }
+
+    private Horse getWinner() {
+        for (Horse h : HorseManager.getHorses()) {
+            if (h.getDistanceTravelled() >= raceLength) {
+                return h;
+            }
         }
+        return null;
+    }
+
+    private boolean allFallen() {
+        boolean allHorsesFallen = true;
+        for (Horse h : HorseManager.getHorses()) {
+            if (!h.hasFallen()) {
+                allHorsesFallen = false;
+            }
+        }
+        return allHorsesFallen;
     }
     
     /***
@@ -152,15 +228,11 @@ public class Race
         
         multiplePrint('=',raceLength+3); //top edge of track
         System.out.println();
-        
-        printLane(lane1Horse);
-        System.out.println();
-        
-        printLane(lane2Horse);
-        System.out.println();
-        
-        printLane(lane3Horse);
-        System.out.println();
+
+        for (Horse h : HorseManager.getHorses()) {
+            printLane(h);
+            System.out.println();
+        }
         
         multiplePrint('=',raceLength+3); //bottom edge of track
         System.out.println();    
@@ -189,7 +261,7 @@ public class Race
         //else print the horse's symbol
         if(theHorse.hasFallen())
         {
-            System.out.print('\u2322');
+            System.out.print('\u2573');
         }
         else
         {
@@ -217,6 +289,75 @@ public class Race
         {
             System.out.print(aChar);
             i = i + 1;
+        }
+    }
+
+    private Horse pickHorseFromFile() throws IOException {
+        Horse[] availableHorses;
+        try {
+            availableHorses = FileHandler.readHorses();
+        }
+        catch (IOException e) {
+            System.out.println("File handling error at pickHorseFromfile");
+            throw e;
+        }
+
+        int choice = -1;
+        int numOfHorses = availableHorses.length;
+
+        if (numOfHorses == 0) {
+            return new Horse("N,NO_HORSES_AVAILABLE,0");
+        }
+
+        while (choice < 0 || choice >= numOfHorses) {
+            System.out.println("Pick a horse from the list!");
+            for (int i = 0; i < availableHorses.length; i++) {
+                System.out.println((i + 1) + ") " + availableHorses[i].getName());
+            }
+            choice = Helper.inputInt("Pick a number") - 1;
+            if (choice < 0 || choice >= numOfHorses) {
+                System.out.println("Pick a number from the list!");
+            }
+        }
+        return availableHorses[choice];
+    }
+
+    public void setHorses() {
+        final int MAX_HORSES = 8;
+        final int MIN_HORSES = 2;
+        HorseManager.clearHorses();
+        int numOfHorses = Helper.inputInt("Enter the number of horses you want");
+        while (numOfHorses < 2 || numOfHorses > MAX_HORSES) {
+            numOfHorses = Helper.inputInt("Please enter a number of horses between " + 2 + " and " + MAX_HORSES + "!");
+        }
+
+        for (int i = 0; i < numOfHorses; i++) {
+            try {
+                HorseManager.appendHorse(pickHorseFromFile());
+            }
+            catch (IOException e) {
+                System.out.println("Error when accessing file!");
+            }
+        }
+    }
+
+    private void menu() {
+        int menuChoice = 0;
+
+        while (menuChoice != 2) {
+            System.out.println("1) Add new horse");
+            System.out.println("2) Start race");
+            menuChoice = Helper.inputInt("Pick a menu option");
+            
+            if (menuChoice == 1) {
+                Horse tempHorse = HorseManager.inputHorse();
+                try {
+                    FileHandler.appendHorse(tempHorse);
+                }
+                catch (IOException e) {
+                    System.out.println("Error when writing horse, please try again");
+                }
+            }
         }
     }
 }

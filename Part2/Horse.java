@@ -1,7 +1,11 @@
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 
-
+/**
+ * Write a description of class Horse here.
+ * 
+ * @author Marlon Pires
+ * @version 0.3
+ */
 /**
  * Write a description of class Horse here.
  * 
@@ -30,9 +34,8 @@ public class Horse
         this.horseConfidence = horseConfidence;
     }
 
-    public Horse(String s) {
-        String[] horseArr = s.split(",");
-        double tempHorseConfidence;
+    public Horse(String[] horseArr) { //Constructor for comma-separarted string literal
+        double confidence;
         
         if (horseArr.length != ConstructorFields) { //Checks the number of fields available
             throw new IllegalArgumentException("Wrong number of fields - only " + ConstructorFields + " can be accepted");
@@ -45,7 +48,7 @@ public class Horse
         // No checks for second element as it is a name, which is a string
         
         try {
-            tempHorseConfidence = Double.parseDouble(horseArr[2]);
+            confidence = Double.parseDouble(horseArr[2]);
         }
         catch (NumberFormatException e) {
             throw new NumberFormatException("The confidence field must be a boolean!");
@@ -53,8 +56,17 @@ public class Horse
 
         horseSymbol = horseArr[0].charAt(0);
         horseName = horseArr[1];
+        double tempHorseConfidence = Double.parseDouble(horseArr[2]);
         confidenceInBounds(tempHorseConfidence);
         horseConfidence = tempHorseConfidence;
+    }
+
+    public Horse(String s) {
+        String[] horseArr = s.split(",");
+        Horse tempHorse = new Horse(horseArr);
+        horseName = tempHorse.getName();
+        horseSymbol = tempHorse.getSymbol();
+        horseConfidence = tempHorse.getConfidence();
     }
 
     //toString method for file handling
@@ -119,40 +131,6 @@ public class Horse
     private void confidenceInBounds(double testConfidence) {
         if (testConfidence > 1 || testConfidence < 0) {
             throw new IllegalArgumentException("Confidence must be within 0-1!");
-        }
-    }
-    
-}
-
-// ******************************************************************
-
-// Used to update all horses and access all horses
-final class HorseManager {
-    private static ArrayList<Horse> horses = new ArrayList<>(); 
-
-    public static void appendHorse(Horse h) {
-        horses.add(h);
-    }
-
-    public static void setHorse(Horse h, int index) {
-        horses.set(index, h);
-    }
-
-    public static void setHorses(Horse[] h) {
-        horses = (ArrayList<Horse>) Arrays.asList(h);
-    }
-
-    public static void clearHorses() {
-        horses = new ArrayList<>(); 
-    }
-
-    public static Horse getHorse(int index) {
-        return horses.get(index);
-    }
-
-    public static void horsesBackToStart() {
-        for (Horse h : horses) {
-            h.goBackToStart();
         }
     }
 }
