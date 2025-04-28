@@ -1,4 +1,3 @@
-import java.util.*;
 
 /**
  * Write a description of class Horse here.

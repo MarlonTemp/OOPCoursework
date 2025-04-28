@@ -13,7 +13,13 @@ import java.io.*;
 
 public class Race
 {
+    public static final int MIN_HORSES = 2;
+    public static final int MAX_HORSES = 8;
+    private static final String[] CONDITIONS = {"dry", "wet", "muddy", "snowy", "normal"};
     private int raceLength;
+    private String condition;
+    private double confidenceConditionMult = 1;
+    private double speedConditionMult = 1;
     private Horse lane1Horse;
     private Horse lane2Horse;
     private Horse lane3Horse;
@@ -28,6 +34,7 @@ public class Race
     {
         // initialise instance variables
         raceLength = distance;
+        condition = "normal";
         /* REDUNDANT DUE TO HORSEHANDLER ARRAYLIST
         lane1Horse = null;
         lane2Horse = null;
@@ -35,8 +42,39 @@ public class Race
         */
     }
 
+    public Race(int distance, String condition){
+        raceLength = distance;
+        this.condition = condition;
+        setConditions(condition);
+    }
+
+    public void setConditions(String condition) {
+        if (condition.equals("dry")) {
+            speedConditionMult = 1.5;
+        }
+        else if (condition.equals("wet")) {
+            speedConditionMult = 0.8;
+        }
+        else if (condition.equals("muddy")) {
+            speedConditionMult = 0.5;
+            confidenceConditionMult = 1.2;
+        }
+        else if (condition.equals("snowy"))  {
+            confidenceConditionMult = 0.8;
+            speedConditionMult = 0.8;
+        }
+        else if (condition.equals("normal")) {
+            speedConditionMult = 1;
+            confidenceConditionMult = 1;
+        }
+        else  {
+            throw new IllegalArgumentException("Condition not recognised!");
+        }
+    }
+
     public static void main(String args[]) {
         boolean raceInitialised = false;
+        
         final int DEFAULT_TRACK_LENGTH = 10;
         Race r = new Race(DEFAULT_TRACK_LENGTH);
         
@@ -61,7 +99,7 @@ public class Race
         }
         
         if (raceInitialised) {
-            r.startRace();
+            System.out.println(r.startRace().getName());
         }
         else {
             System.out.println("0 arguments: default length (" + DEFAULT_TRACK_LENGTH + ") \n 1 argument: int track length");
@@ -75,6 +113,7 @@ public class Race
      * @param theHorse the horse to be added to the race
      * @param laneNumber the lane that the horse will be added to
      */
+    /* 
     @Deprecated
     private void addHorse(Horse theHorse, int laneNumber)
     {
@@ -95,6 +134,7 @@ public class Race
             System.out.println("Cannot add horse to lane " + laneNumber + " because there is no such lane");
         }
     }
+    */
     
     /**
      * Start the race
@@ -102,56 +142,46 @@ public class Race
      * then repeatedly moved forward until the 
      * race is finished
      */
-    public void startRace()
+    public Horse startRace()
     {
-        String userChoice = "";
-        boolean continueLoop = true;
-        while (continueLoop) {
-            //declare a local variable to tell us when the race is finished
-            boolean finished = false;
-            Horse winner;
-            //Menu allowing user to add horses, or begin race
-            menu();
-            
-            setHorses();
-            
-            //reset all the lanes (all horses not fallen and back to 0). 
-            HorseManager.horsesBackToStart();
-                          
-            while ((!finished) && (!allFallen()))
-            {
-                //move each horse
-                for (Horse h : HorseManager.getHorses()) {
-                    moveHorse(h);
-                }
-                            
-                //print the race positions
-                printRace();
-                
-                //if any of the three horses has won the race is finished
-                if (raceWonByHorse())
-                {
-                    finished = true;
-                }
-               
-                //wait for 100 milliseconds
-                try{ 
-                    TimeUnit.MILLISECONDS.sleep(100);
-                }catch(Exception e){}
-            }
-            if (raceWonByHorse()) {
-                System.out.println("And the winner is... " + getWinner().getName());
-            }
-            else {
-                System.out.println("No horse won!");
-            }
-            
-            userChoice = Helper.input("Start another race? (y/n)");
-            if (userChoice.equals("n")) {
-                continueLoop = false;
-            }
-        }
+        //declare a local variable to tell us when the race is finished
+        boolean finished = false;
+        //Menu allowing user to add horses, or begin race
         
+        //reset all the lanes (all horses not fallen and back to 0). 
+        HorseManager.horsesBackToStart();
+                        
+        while ((!finished) && (!allFallen()))
+        {
+            //move each horse
+            for (Horse h : HorseManager.getHorses()) {
+                moveHorse(h);
+            }
+                        
+            //print the race positions - UNUSED FOR GUI
+            //printRace();
+            
+            //if any of the three horses has won the race is finished
+            if (raceWonByHorse())
+            {
+                finished = true;
+            }
+            
+            //wait for 100 milliseconds
+            try{ 
+                TimeUnit.MILLISECONDS.sleep(100);
+            }catch(Exception e){}
+        }
+        /* UNUSED FOR GUI
+        if (raceWonByHorse()) {
+            System.out.println("And the winner is... " + getWinner().getName());
+        }
+        else {
+            System.out.println("No horse won!");
+        }
+        */
+
+        return getWinner();
     }
     
     /**
@@ -168,7 +198,7 @@ public class Race
         if  (!theHorse.hasFallen())
         {
             //the probability that the horse will move forward depends on the confidence;
-            if (Math.random() < theHorse.getConfidence())
+            if (Math.random() < theHorse.getConfidence() * speedConditionMult)
             {
                theHorse.moveForward();
             }
@@ -176,7 +206,7 @@ public class Race
             //the probability that the horse will fall is very small (max is 0.1)
             //but will also will depends exponentially on confidence 
             //so if you double the confidence, the probability that it will fall is *2
-            if (Math.random() < (0.1*theHorse.getConfidence()*theHorse.getConfidence()))
+            if (Math.random() < (0.1*theHorse.getConfidence()*theHorse.getConfidence()*confidenceConditionMult))
             {
                 theHorse.fall();
             }
@@ -323,8 +353,6 @@ public class Race
     }
 
     public void setHorses() {
-        final int MAX_HORSES = 8;
-        final int MIN_HORSES = 2;
         HorseManager.clearHorses();
         int numOfHorses = Helper.inputInt("Enter the number of horses you want");
         while (numOfHorses < 2 || numOfHorses > MAX_HORSES) {
@@ -359,5 +387,9 @@ public class Race
                 }
             }
         }
+    }
+
+    public static String[] getConditions() {
+        return CONDITIONS;
     }
 }
