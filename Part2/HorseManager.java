@@ -11,6 +11,9 @@ final class HorseManager {
         horses.set(index, h);
     }
 
+    public static int size() {
+        return horses.size(); 
+    }
 
     public static void clearHorses() {
         horses = new ArrayList<>(); 

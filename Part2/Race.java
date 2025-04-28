@@ -13,6 +13,8 @@ import java.io.*;
 
 public class Race
 {
+    public static final int MIN_HORSES = 2;
+    public static final int MAX_HORSES = 8;
     private int raceLength;
     private Horse lane1Horse;
     private Horse lane2Horse;
@@ -37,6 +39,7 @@ public class Race
 
     public static void main(String args[]) {
         boolean raceInitialised = false;
+        
         final int DEFAULT_TRACK_LENGTH = 10;
         Race r = new Race(DEFAULT_TRACK_LENGTH);
         
@@ -75,6 +78,7 @@ public class Race
      * @param theHorse the horse to be added to the race
      * @param laneNumber the lane that the horse will be added to
      */
+    /* 
     @Deprecated
     private void addHorse(Horse theHorse, int laneNumber)
     {
@@ -95,6 +99,7 @@ public class Race
             System.out.println("Cannot add horse to lane " + laneNumber + " because there is no such lane");
         }
     }
+    */
     
     /**
      * Start the race
@@ -118,8 +123,8 @@ public class Race
                 moveHorse(h);
             }
                         
-            //print the race positions
-            printRace();
+            //print the race positions - UNUSED FOR GUI
+            //printRace();
             
             //if any of the three horses has won the race is finished
             if (raceWonByHorse())
@@ -132,12 +137,14 @@ public class Race
                 TimeUnit.MILLISECONDS.sleep(100);
             }catch(Exception e){}
         }
+        /* UNUSED FOR GUI
         if (raceWonByHorse()) {
             System.out.println("And the winner is... " + getWinner().getName());
         }
         else {
             System.out.println("No horse won!");
         }
+        */
 
         return getWinner();
     }
@@ -311,8 +318,6 @@ public class Race
     }
 
     public void setHorses() {
-        final int MAX_HORSES = 8;
-        final int MIN_HORSES = 2;
         HorseManager.clearHorses();
         int numOfHorses = Helper.inputInt("Enter the number of horses you want");
         while (numOfHorses < 2 || numOfHorses > MAX_HORSES) {

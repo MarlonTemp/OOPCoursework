@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import javax.swing.*;
 
 class HorseRacingGUI {
-
     public static void main(String[] args) {
         System.out.println("Hello World!");
         SwingUtilities.invokeLater(() -> new HorseRacingGUI());
@@ -12,66 +11,84 @@ class HorseRacingGUI {
     }
 
     public HorseRacingGUI() {
-        Horse winningHorse;
-
+        // Frame setup
         JFrame frame = new JFrame("Hello");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1600, 900);
 
+        //All the horses participating in the race
         Horse[] availableHorses = new Horse[0];
         try {
             availableHorses = FileHandler.readHorses();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        
+        //UNUSED
         String[] horseNames = new String[availableHorses.length];
         for (int i = 0; i < availableHorses.length; i++) {
             horseNames[i] = availableHorses[i].getName();
             
         }
 
-        System.out.println("Horse names: ");
+        //Horses for combobox
         JComboBox<Horse> horseComboBox = new JComboBox<>();
         for (Horse s : availableHorses) {
             horseComboBox.addItem(s);
         }
 
-        final int VERT_COLS = 2;
+        //Layout 
+        final int VERT_COLS = 3;
         JPanel mainPanel = new JPanel(new GridLayout(2,1));
-        JPanel topPanel = new JPanel(new FlowLayout());
         JPanel topGrid = new JPanel(new GridLayout(1,VERT_COLS));
         JPanel flow1 = new JPanel(new FlowLayout());
         topGrid.add(flow1);
         JPanel flow2 = new JPanel(new FlowLayout());
         topGrid.add(flow2);
+        JPanel flow3 = new JPanel(new FlowLayout());
+        topGrid.add(flow3);
         JPanel bottomPanel = new JPanel(new BorderLayout());
+        JTextField textField = new JTextField(20);
+        JLabel winningHorse = new JLabel("Last Winning Horse: ");
+        JLabel addedHorses = new JLabel("Horses participating: ");
 
-
-
-        JButton button1 = new JButton("Add Horse");
+        //Button for adding horse
+        JButton button1 = new JButton("Add Horse (Max horses: " + Race.MAX_HORSES + ")");
         button1.addActionListener(e -> {
             Horse selectedHorse = (Horse) horseComboBox.getSelectedItem();
-            if (selectedHorse != null) {
+            if (selectedHorse != null && Race.MAX_HORSES > HorseManager.size()) {
                 HorseManager.appendHorse(selectedHorse);
+                addedHorses.setText(addedHorses.getText() + " " + selectedHorse.getName());
             }
         });
 
-        JButton button2 = new JButton("Begin Race");
-        button2.addActionListener(e -> {
-            Race r = new Race(10);
-            winningHorse = r.startRace();
 
+        //Button for beginning race
+        JButton button2 = new JButton("Begin Race (" + Race.MIN_HORSES + " horses needed)");
+        button2.addActionListener(e -> {
+            if (HorseManager.size() >= Race.MIN_HORSES) {
+                Race r = new Race(10);
+                winningHorse.setText("Last Winning Horse: " + r.startRace());
+                HorseManager.clearHorses();
+                addedHorses.setText("Horses participating: ");
+            }
         });
 
+        
 
-
-        JButton button3 = new JButton("Button 3");
+        JButton button3 = new JButton("Cancel Race");
+        button3.addActionListener(e -> {
+            HorseManager.clearHorses();
+            addedHorses.setText("Horses participating: ");
+        });
+            
+        //****************** CANVAS USED FOR DRAWING TRACKS ****************
+        
         Canvas canvas = new Canvas();
-
-
+        //Field colour (meant to be grass)
         canvas.setBackground(Color.GREEN);
 
+        //A figure 8 style track
         Vector[] track = new Vector[] {
             new Vector(0, 100),
             new Vector(100, 0),
@@ -83,7 +100,7 @@ class HorseRacingGUI {
             new Vector(100, 200),
         };
 
-        //AI generated example of track
+        //AI generated example of an octagon track for testing
         Vector[] octagon = new Vector[] {
             new Vector(100 + 50, 100), // Right
             new Vector(100 + 35, 100 - 35), // Top-right
@@ -97,16 +114,20 @@ class HorseRacingGUI {
         
         //Example tracks that a horse could follow
         canvas.addShapeReturn(track);
-
         canvas.addShapeReturn(Vector.addOffset((track), new Vector(0, 20)));
         canvas.addShapeReturn(octagon);
+
+        //*******************************************
 
         frame.add(mainPanel);
         mainPanel.add(topGrid);
         mainPanel.add(bottomPanel);
         flow1.add(button1);
         flow1.add(horseComboBox);
+        flow1.add(addedHorses);
+        flow1.add(button3);
         flow2.add(button2);
+        flow2.add(winningHorse);
         bottomPanel.add(canvas, BorderLayout.CENTER);
         frame.setVisible(true);
     }
