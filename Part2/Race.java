@@ -61,7 +61,7 @@ public class Race
         }
         
         if (raceInitialised) {
-            r.startRace();
+            System.out.println(r.startRace().getName());
         }
         else {
             System.out.println("0 arguments: default length (" + DEFAULT_TRACK_LENGTH + ") \n 1 argument: int track length");
@@ -102,56 +102,44 @@ public class Race
      * then repeatedly moved forward until the 
      * race is finished
      */
-    public void startRace()
+    public Horse startRace()
     {
-        String userChoice = "";
-        boolean continueLoop = true;
-        while (continueLoop) {
-            //declare a local variable to tell us when the race is finished
-            boolean finished = false;
-            Horse winner;
-            //Menu allowing user to add horses, or begin race
-            menu();
-            
-            setHorses();
-            
-            //reset all the lanes (all horses not fallen and back to 0). 
-            HorseManager.horsesBackToStart();
-                          
-            while ((!finished) && (!allFallen()))
-            {
-                //move each horse
-                for (Horse h : HorseManager.getHorses()) {
-                    moveHorse(h);
-                }
-                            
-                //print the race positions
-                printRace();
-                
-                //if any of the three horses has won the race is finished
-                if (raceWonByHorse())
-                {
-                    finished = true;
-                }
-               
-                //wait for 100 milliseconds
-                try{ 
-                    TimeUnit.MILLISECONDS.sleep(100);
-                }catch(Exception e){}
-            }
-            if (raceWonByHorse()) {
-                System.out.println("And the winner is... " + getWinner().getName());
-            }
-            else {
-                System.out.println("No horse won!");
-            }
-            
-            userChoice = Helper.input("Start another race? (y/n)");
-            if (userChoice.equals("n")) {
-                continueLoop = false;
-            }
-        }
+        //declare a local variable to tell us when the race is finished
+        boolean finished = false;
+        //Menu allowing user to add horses, or begin race
         
+        //reset all the lanes (all horses not fallen and back to 0). 
+        HorseManager.horsesBackToStart();
+                        
+        while ((!finished) && (!allFallen()))
+        {
+            //move each horse
+            for (Horse h : HorseManager.getHorses()) {
+                moveHorse(h);
+            }
+                        
+            //print the race positions
+            printRace();
+            
+            //if any of the three horses has won the race is finished
+            if (raceWonByHorse())
+            {
+                finished = true;
+            }
+            
+            //wait for 100 milliseconds
+            try{ 
+                TimeUnit.MILLISECONDS.sleep(100);
+            }catch(Exception e){}
+        }
+        if (raceWonByHorse()) {
+            System.out.println("And the winner is... " + getWinner().getName());
+        }
+        else {
+            System.out.println("No horse won!");
+        }
+
+        return getWinner();
     }
     
     /**

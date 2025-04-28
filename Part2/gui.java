@@ -1,33 +1,71 @@
 import java.awt.*;
+import java.io.IOException;
 import java.util.ArrayList;
 import javax.swing.*;
 
 class HorseRacingGUI {
 
     public static void main(String[] args) {
-            SwingUtilities.invokeLater(() -> new HorseRacingGUI());
+        System.out.println("Hello World!");
+        SwingUtilities.invokeLater(() -> new HorseRacingGUI());
 
     }
 
     public HorseRacingGUI() {
+        Horse winningHorse;
+
         JFrame frame = new JFrame("Hello");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1600, 900);
 
-        final int VERT_COLS = 5;
+        Horse[] availableHorses = new Horse[0];
+        try {
+            availableHorses = FileHandler.readHorses();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        String[] horseNames = new String[availableHorses.length];
+        for (int i = 0; i < availableHorses.length; i++) {
+            horseNames[i] = availableHorses[i].getName();
+            
+        }
+
+        System.out.println("Horse names: ");
+        JComboBox<Horse> horseComboBox = new JComboBox<>();
+        for (Horse s : availableHorses) {
+            horseComboBox.addItem(s);
+        }
+
+        final int VERT_COLS = 2;
         JPanel mainPanel = new JPanel(new GridLayout(2,1));
         JPanel topPanel = new JPanel(new FlowLayout());
         JPanel topGrid = new JPanel(new GridLayout(1,VERT_COLS));
-        JPanel verticalFlow = new JPanel();
-        topGrid.add(verticalFlow);
+        JPanel flow1 = new JPanel(new FlowLayout());
+        topGrid.add(flow1);
+        JPanel flow2 = new JPanel(new FlowLayout());
+        topGrid.add(flow2);
         JPanel bottomPanel = new JPanel(new BorderLayout());
 
 
-        JButton button1 = new JButton("Button 1");
-        button1.setLocation(100, 100);
-        button1.setSize(100, 50);
-        JButton button2 = new JButton("Button 2");
-        button2.setLocation(200, 100);
+
+        JButton button1 = new JButton("Add Horse");
+        button1.addActionListener(e -> {
+            Horse selectedHorse = (Horse) horseComboBox.getSelectedItem();
+            if (selectedHorse != null) {
+                HorseManager.appendHorse(selectedHorse);
+            }
+        });
+
+        JButton button2 = new JButton("Begin Race");
+        button2.addActionListener(e -> {
+            Race r = new Race(10);
+            winningHorse = r.startRace();
+
+        });
+
+
+
         JButton button3 = new JButton("Button 3");
         Canvas canvas = new Canvas();
 
@@ -66,8 +104,9 @@ class HorseRacingGUI {
         frame.add(mainPanel);
         mainPanel.add(topGrid);
         mainPanel.add(bottomPanel);
-        topGrid.add(button1);
-        topGrid.add(button2);
+        flow1.add(button1);
+        flow1.add(horseComboBox);
+        flow2.add(button2);
         bottomPanel.add(canvas, BorderLayout.CENTER);
         frame.setVisible(true);
     }
