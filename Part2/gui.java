@@ -1,11 +1,12 @@
-
 import java.awt.*;
+import java.util.ArrayList;
 import javax.swing.*;
 
 class HorseRacingGUI {
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new HorseRacingGUI());
+            SwingUtilities.invokeLater(() -> new HorseRacingGUI());
+
     }
 
     public HorseRacingGUI() {
@@ -13,10 +14,15 @@ class HorseRacingGUI {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1600, 900);
 
-        
+        final int VERT_COLS = 5;
         JPanel mainPanel = new JPanel(new GridLayout(2,1));
         JPanel topPanel = new JPanel(new FlowLayout());
+        JPanel topGrid = new JPanel(new GridLayout(1,VERT_COLS));
+        JPanel verticalFlow = new JPanel();
+        topGrid.add(verticalFlow);
         JPanel bottomPanel = new JPanel(new BorderLayout());
+
+
         JButton button1 = new JButton("Button 1");
         button1.setLocation(100, 100);
         button1.setSize(100, 50);
@@ -24,22 +30,60 @@ class HorseRacingGUI {
         button2.setLocation(200, 100);
         JButton button3 = new JButton("Button 3");
         Canvas canvas = new Canvas();
+
+
         canvas.setBackground(Color.GREEN);
-        canvas.drawShapeReturn(new Vector[] {
-            new Vector(0, 0),
-            new Vector(200, 200),
-            new Vector(300, 100),
-            new Vector(400, 200)
-        });
+
+        Vector[] track = new Vector[] {
+            new Vector(0, 100),
+            new Vector(100, 0),
+            new Vector(200, 100),
+            new Vector(300, 200),
+            new Vector(400, 100),
+            new Vector(300, 0),
+            new Vector(200, 100),
+            new Vector(100, 200),
+        };
+
+        //AI generated example of track
+        Vector[] octagon = new Vector[] {
+            new Vector(100 + 50, 100), // Right
+            new Vector(100 + 35, 100 - 35), // Top-right
+            new Vector(100, 100 - 50), // Top
+            new Vector(100 - 35, 100 - 35), // Top-left
+            new Vector(100 - 50, 100), // Left
+            new Vector(100 - 35, 100 + 35), // Bottom-left
+            new Vector(100, 100 + 50), // Bottom
+            new Vector(100 + 35, 100 + 35) // Bottom-right
+        };
+        
+        //Example tracks that a horse could follow
+        canvas.addShapeReturn(track);
+
+        canvas.addShapeReturn(Vector.addOffset((track), new Vector(0, 20)));
+        canvas.addShapeReturn(octagon);
 
         frame.add(mainPanel);
-        mainPanel.add(topPanel);
+        mainPanel.add(topGrid);
         mainPanel.add(bottomPanel);
-        topPanel.add(button1);
-        topPanel.add(button2);
+        topGrid.add(button1);
+        topGrid.add(button2);
         bottomPanel.add(canvas, BorderLayout.CENTER);
         frame.setVisible(true);
     }
+
+    private int incrementTimer(int timer) {
+        final int TIME_INCREMENT = 100;
+        try {
+            Thread.sleep(TIME_INCREMENT);
+            return timer + TIME_INCREMENT;
+        } 
+        catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return timer;
+    }
+    
 }
 
 
@@ -77,34 +121,40 @@ class Line extends JComponent {
 }
 
 class Canvas extends JPanel {
-    private Vector[] points;
+    private ArrayList<Vector[]> shapes = new ArrayList<>();
 
     public Canvas() {
         super();
     }
 
-    public void drawShape(Vector[] points) {
-        this.points = points;
-        repaint(); //Redraws the shape with the added points
+    public void addNewShape(Vector[] points) {
+        shapes.add(points);
+        repaint();
     }
 
-    public void drawShapeReturn(Vector[] points) { //adds additional point which is same as start, so the shape is joined 
-        this.points = new Vector[points.length + 1];
+    public void addShapeReturn(Vector[] points) {
+        Vector[] temp = new Vector[points.length + 1];
         for (int i = 0; i < points.length; i++) {
-            this.points[i] = points[i];
+            temp[i] = points[i];
         }
-        this.points[points.length] = points[0]; //connects the first and last point
+        temp[points.length] = points[0]; //connects the first and last point
+        shapes.add(temp);
         repaint();
+    }
+
+    public void clearShapes() {
+        shapes = new ArrayList<>();
     }
         
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        if (points != null) {
-            g.setColor(Color.BLACK);
-            for (int i = 0; i < points.length - 1; i++) {
-                g.drawLine(points[i].x, points[i].y, points[i + 1].x, points[i + 1].y);
+        g.setColor(Color.BLACK);
+
+        for (Vector[] shape : shapes) {
+            for (int i = 0; i < shape.length - 1; i++) {
+                g.drawLine(shape[i].x, shape[i].y, shape[i + 1].x, shape[i + 1].y);
             }
         }
     }
@@ -115,5 +165,13 @@ class Vector {
     public Vector(int x, int y) {
         this.x = x;
         this.y = y;
+    }
+
+    public static Vector[] addOffset(Vector[] points, Vector v) {
+        Vector[] newPoints = new Vector[points.length];
+        for (int i = 0; i < points.length; i++) {
+            newPoints[i] = new Vector(points[i].x + v.x, points[i].y + v.y);
+        }
+        return newPoints;
     }
 }
