@@ -15,7 +15,11 @@ public class Race
 {
     public static final int MIN_HORSES = 2;
     public static final int MAX_HORSES = 8;
+    private static final String[] CONDITIONS = {"dry", "wet", "muddy", "snowy", "normal"};
     private int raceLength;
+    private String condition;
+    private double confidenceConditionMult = 1;
+    private double speedConditionMult = 1;
     private Horse lane1Horse;
     private Horse lane2Horse;
     private Horse lane3Horse;
@@ -30,11 +34,42 @@ public class Race
     {
         // initialise instance variables
         raceLength = distance;
+        condition = "normal";
         /* REDUNDANT DUE TO HORSEHANDLER ARRAYLIST
         lane1Horse = null;
         lane2Horse = null;
         lane3Horse = null;
         */
+    }
+
+    public Race(int distance, String condition){
+        raceLength = distance;
+        this.condition = condition;
+        setConditions(condition);
+    }
+
+    public void setConditions(String condition) {
+        if (condition.equals("dry")) {
+            speedConditionMult = 1.5;
+        }
+        else if (condition.equals("wet")) {
+            speedConditionMult = 0.8;
+        }
+        else if (condition.equals("muddy")) {
+            speedConditionMult = 0.5;
+            confidenceConditionMult = 1.2;
+        }
+        else if (condition.equals("snowy"))  {
+            confidenceConditionMult = 0.8;
+            speedConditionMult = 0.8;
+        }
+        else if (condition.equals("normal")) {
+            speedConditionMult = 1;
+            confidenceConditionMult = 1;
+        }
+        else  {
+            throw new IllegalArgumentException("Condition not recognised!");
+        }
     }
 
     public static void main(String args[]) {
@@ -163,7 +198,7 @@ public class Race
         if  (!theHorse.hasFallen())
         {
             //the probability that the horse will move forward depends on the confidence;
-            if (Math.random() < theHorse.getConfidence())
+            if (Math.random() < theHorse.getConfidence() * speedConditionMult)
             {
                theHorse.moveForward();
             }
@@ -171,7 +206,7 @@ public class Race
             //the probability that the horse will fall is very small (max is 0.1)
             //but will also will depends exponentially on confidence 
             //so if you double the confidence, the probability that it will fall is *2
-            if (Math.random() < (0.1*theHorse.getConfidence()*theHorse.getConfidence()))
+            if (Math.random() < (0.1*theHorse.getConfidence()*theHorse.getConfidence()*confidenceConditionMult))
             {
                 theHorse.fall();
             }
@@ -352,5 +387,9 @@ public class Race
                 }
             }
         }
+    }
+
+    public static String[] getConditions() {
+        return CONDITIONS;
     }
 }

@@ -1,4 +1,5 @@
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import javax.swing.*;
@@ -37,8 +38,14 @@ class HorseRacingGUI {
             horseComboBox.addItem(s);
         }
 
+        JComboBox<String> conditionComboBox = new JComboBox<>();
+        for (String s : Race.getConditions()) {
+            conditionComboBox.addItem(s);
+        }
+
+
         //Layout 
-        final int VERT_COLS = 3;
+        final int VERT_COLS = 4;
         JPanel mainPanel = new JPanel(new GridLayout(2,1));
         JPanel topGrid = new JPanel(new GridLayout(1,VERT_COLS));
         JPanel flow1 = new JPanel(new FlowLayout());
@@ -47,10 +54,18 @@ class HorseRacingGUI {
         topGrid.add(flow2);
         JPanel flow3 = new JPanel(new FlowLayout());
         topGrid.add(flow3);
+        /*
+        JPanel flow4 = new JPanel(new FlowLayout());
+        topGrid.add(flow4);
+        */
         JPanel bottomPanel = new JPanel(new BorderLayout());
-        JTextField textField = new JTextField(20);
+        JTextField horseInput = new JTextField(20);
         JLabel winningHorse = new JLabel("Last Winning Horse: ");
         JLabel addedHorses = new JLabel("Horses participating: ");
+        JLabel inputHorseError = new JLabel();
+        inputHorseError.setForeground(Color.RED);
+
+        //************************* BUTTONS **********************************
 
         //Button for adding horse
         JButton button1 = new JButton("Add Horse (Max horses: " + Race.MAX_HORSES + ")");
@@ -67,8 +82,15 @@ class HorseRacingGUI {
         JButton button2 = new JButton("Begin Race (" + Race.MIN_HORSES + " horses needed)");
         button2.addActionListener(e -> {
             if (HorseManager.size() >= Race.MIN_HORSES) {
-                Race r = new Race(10);
-                winningHorse.setText("Last Winning Horse: " + r.startRace());
+                Race r = new Race(10, conditionComboBox.getSelectedItem().toString());
+                Horse winner = r.startRace();
+                if (winner != null) {
+                    winningHorse.setText("Last Winning Horse: " + winner.getName());
+                }
+                else {
+                    winningHorse.setText("Last Winning Horse: No winner!");
+                }
+                
                 HorseManager.clearHorses();
                 addedHorses.setText("Horses participating: ");
             }
@@ -80,6 +102,25 @@ class HorseRacingGUI {
         button3.addActionListener(e -> {
             HorseManager.clearHorses();
             addedHorses.setText("Horses participating: ");
+        });
+
+        JButton button4 = new JButton("Create Horse");
+        button4.addActionListener(e -> {
+            Horse newHorse;
+            String tempStringHorse = horseInput.getText();
+            try {
+                newHorse = new Horse(tempStringHorse);
+                FileHandler.appendHorse(newHorse);
+                inputHorseError.setText("");
+                horseInput.setText("");
+                horseComboBox.addItem(newHorse);
+            } 
+            catch (IllegalArgumentException exception) {
+                inputHorseError.setText("Invalid horse data! Enter a horse in the format: symbol,name,confidence (0-1)");
+            } 
+            catch (IOException exception) {
+                inputHorseError.setText("Error writing to file!");
+            }
         });
             
         //****************** CANVAS USED FOR DRAWING TRACKS ****************
@@ -126,12 +167,18 @@ class HorseRacingGUI {
         flow1.add(horseComboBox);
         flow1.add(addedHorses);
         flow1.add(button3);
+        flow1.add(conditionComboBox);
         flow2.add(button2);
         flow2.add(winningHorse);
+        flow3.add(horseInput);
+        flow3.add(button4);
+        flow3.add(inputHorseError);
         bottomPanel.add(canvas, BorderLayout.CENTER);
         frame.setVisible(true);
     }
 
+
+    //UNUSED CODE FOR ANIMATION (does not work)
     private int incrementTimer(int timer) {
         final int TIME_INCREMENT = 100;
         try {
