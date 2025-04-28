@@ -14,9 +14,6 @@ import java.io.*;
 public class Race
 {
     private int raceLength;
-    private Horse lane1Horse;
-    private Horse lane2Horse;
-    private Horse lane3Horse;
 
     /**
      * Constructor for objects of class Race
@@ -28,11 +25,6 @@ public class Race
     {
         // initialise instance variables
         raceLength = distance;
-        /* REDUNDANT DUE TO HORSEHANDLER ARRAYLIST
-        lane1Horse = null;
-        lane2Horse = null;
-        lane3Horse = null;
-        */
     }
 
     public static void main(String args[]) {
@@ -52,8 +44,6 @@ public class Race
             catch (NumberFormatException e) {
                 throw new NumberFormatException("Enter a positive number!");
             }
-                
-            
         }
         else if (args.length == 0) {
             r = new Race(DEFAULT_TRACK_LENGTH);
@@ -200,6 +190,8 @@ public class Race
         return false;
     }
 
+
+    // Used to find a horse that has won. If no horse has won, returns null
     private Horse getWinner() {
         for (Horse h : HorseManager.getHorses()) {
             if (h.getDistanceTravelled() >= raceLength) {
@@ -209,6 +201,7 @@ public class Race
         return null;
     }
 
+    // Checks whether all horses competing within the race have fallen. If they have, returns true
     private boolean allFallen() {
         boolean allHorsesFallen = true;
         for (Horse h : HorseManager.getHorses()) {
@@ -292,7 +285,10 @@ public class Race
         }
     }
 
-    private Horse pickHorseFromFile() throws IOException {
+    // ************** FILE HANDLING *****************
+
+    // ALlows the user to pick a horse from a file. If there are no horses available, returns a default horse. If file not found, throws error
+    private Horse pickHorseFromFile() throws IOException { 
         Horse[] availableHorses;
         try {
             availableHorses = FileHandler.readHorses();
@@ -322,12 +318,15 @@ public class Race
         return availableHorses[choice];
     }
 
+// *************** MENU AND UI **********************
+    
+    // Allows the user to set the horses for the race
     public void setHorses() {
-        final int MAX_HORSES = 8;
+        final int MAX_HORSES = 8; 
         final int MIN_HORSES = 2;
         HorseManager.clearHorses();
         int numOfHorses = Helper.inputInt("Enter the number of horses you want");
-        while (numOfHorses < 2 || numOfHorses > MAX_HORSES) {
+        while (numOfHorses < MIN_HORSES || numOfHorses > MAX_HORSES) {
             numOfHorses = Helper.inputInt("Please enter a number of horses between " + 2 + " and " + MAX_HORSES + "!");
         }
 
@@ -341,6 +340,9 @@ public class Race
         }
     }
 
+    
+    // Main menu for user. If user chooses option 1, allows user to make a new horse, which is stored in file
+    // If user chooses option 2, breaks loop, which leads onto next method in start race methdd
     private void menu() {
         int menuChoice = 0;
 

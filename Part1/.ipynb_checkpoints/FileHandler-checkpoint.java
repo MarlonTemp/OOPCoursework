@@ -201,10 +201,13 @@ final class FileHandler {
 
     /* *** FILE HANDILNG FOR DATA *** */
 
+
+    // Adds a horse to a csv
     public static void appendHorse(Horse h) throws IOException { 
         appendLineToFile(HorseFile, h.toString());
     }
-
+    
+    // reads all horses from csv, and creates horse array
     public static Horse[] readHorses() throws IOException {
         String[] strHorseArr = readFromFile(HorseFile);
         Horse[] horses = new Horse[strHorseArr.length];
