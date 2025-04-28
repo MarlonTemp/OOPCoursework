@@ -1,19 +1,17 @@
 import java.awt.*;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import javax.swing.*;
 
 class HorseRacingGUI {
     public static void main(String[] args) {
-        System.out.println("Hello World!");
         SwingUtilities.invokeLater(() -> new HorseRacingGUI());
 
     }
 
     public HorseRacingGUI() {
         // Frame setup
-        JFrame frame = new JFrame("Hello");
+        JFrame frame = new JFrame("Horse simulator");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1600, 900);
 
@@ -45,7 +43,7 @@ class HorseRacingGUI {
 
 
         //Layout 
-        final int VERT_COLS = 4;
+        final int VERT_COLS = 3;
         JPanel mainPanel = new JPanel(new GridLayout(2,1));
         JPanel topGrid = new JPanel(new GridLayout(1,VERT_COLS));
         JPanel flow1 = new JPanel(new FlowLayout());
@@ -97,13 +95,14 @@ class HorseRacingGUI {
         });
 
         
-
+        //Button for clearing horses from race
         JButton button3 = new JButton("Cancel Race");
         button3.addActionListener(e -> {
             HorseManager.clearHorses();
             addedHorses.setText("Horses participating: ");
         });
 
+        //Button for creating a new horse and adding horse to file
         JButton button4 = new JButton("Create Horse");
         button4.addActionListener(e -> {
             Horse newHorse;
@@ -194,91 +193,3 @@ class HorseRacingGUI {
 }
 
 
-class Line extends JComponent {
-    int x1, y1, x2, y2;
-    public Line(int x1, int y1, int x2, int y2) {
-        super();
-        this.x1 = x1;
-        this.y1 = y1;
-        this.x2 = x2;
-        this.y2 = y2;
-        System.out.println("Test");
-    }
-
-    public Line(Vector start, Vector end) {
-        this.x1 = start.x;
-        this.y1 = start.y;
-        this.x2 = end.x;
-        this.y2 = end.y;
-    }
-
-    @Override
-    public void paint(Graphics g)
-    {
-        super.paint(g);
-        g.setColor(Color.BLACK);
-        g.drawLine(x1, y1, x2, y2);
-        System.out.println("Hello");
-    }
-
-    @Override
-    public Dimension getPreferredSize() {
-        return new Dimension(Math.abs(x2 - x1), Math.abs(y2 - y1));
-    }
-}
-
-class Canvas extends JPanel {
-    private ArrayList<Vector[]> shapes = new ArrayList<>();
-
-    public Canvas() {
-        super();
-    }
-
-    public void addNewShape(Vector[] points) {
-        shapes.add(points);
-        repaint();
-    }
-
-    public void addShapeReturn(Vector[] points) {
-        Vector[] temp = new Vector[points.length + 1];
-        for (int i = 0; i < points.length; i++) {
-            temp[i] = points[i];
-        }
-        temp[points.length] = points[0]; //connects the first and last point
-        shapes.add(temp);
-        repaint();
-    }
-
-    public void clearShapes() {
-        shapes = new ArrayList<>();
-    }
-        
-
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        g.setColor(Color.BLACK);
-
-        for (Vector[] shape : shapes) {
-            for (int i = 0; i < shape.length - 1; i++) {
-                g.drawLine(shape[i].x, shape[i].y, shape[i + 1].x, shape[i + 1].y);
-            }
-        }
-    }
-}
-
-class Vector {
-    int x, y;
-    public Vector(int x, int y) {
-        this.x = x;
-        this.y = y;
-    }
-
-    public static Vector[] addOffset(Vector[] points, Vector v) {
-        Vector[] newPoints = new Vector[points.length];
-        for (int i = 0; i < points.length; i++) {
-            newPoints[i] = new Vector(points[i].x + v.x, points[i].y + v.y);
-        }
-        return newPoints;
-    }
-}
